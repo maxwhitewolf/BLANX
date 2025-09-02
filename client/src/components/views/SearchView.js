@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -19,22 +20,87 @@ import {
   MenuItem,
   Grid,
   Divider,
+  Fade,
+  Slide,
+  Stack,
 } from '@mui/material';
 import {
   Search as SearchIcon,
   Person as PersonIcon,
   Article as ArticleIcon,
   Tag as TagIcon,
+  FilterList as FilterIcon,
 } from '@mui/icons-material';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { isLoggedIn } from '../../helpers/authHelper';
 import PostCard from '../PostCard';
 import { styled } from '@mui/material/styles';
+import AnimatedBackground from '../common/AnimatedBackground';
 
 const SearchContainer = styled(Box)(({ theme }) => ({
-  paddingTop: 80,
   minHeight: '100vh',
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  paddingTop: theme.spacing(10),
+  position: 'relative',
+}));
+
+const SearchHeader = styled(Box)(({ theme }) => ({
+  background: 'rgba(22, 27, 34, 0.8)',
+  backdropFilter: 'blur(20px)',
+  borderRadius: '24px',
+  padding: theme.spacing(4),
+  marginBottom: theme.spacing(4),
+  border: '1px solid rgba(48, 54, 61, 0.5)',
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '4px',
+    background: 'linear-gradient(90deg, #6c5ce7, #fd79a8, #00d4aa)',
+    borderRadius: '24px 24px 0 0',
+  },
+}));
+
+const StyledTabs = styled(Tabs)(({ theme }) => ({
+  '& .MuiTab-root': {
+    minHeight: '60px',
+    padding: theme.spacing(1.5, 3),
+    borderRadius: '16px',
+    margin: theme.spacing(0, 0.5),
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    textTransform: 'none',
+    fontWeight: 600,
+    fontSize: '1rem',
+    '&:hover': {
+      background: 'rgba(108, 92, 231, 0.1)',
+      transform: 'translateY(-2px)',
+    },
+    '&.Mui-selected': {
+      background: 'linear-gradient(135deg, #6c5ce7, #a29bfe)',
+      color: 'white',
+    },
+  },
+  '& .MuiTabs-indicator': {
+    display: 'none',
+  },
+}));
+
+const ResultCard = styled(Card)(({ theme }) => ({
+  background: 'rgba(22, 27, 34, 0.8)',
+  backdropFilter: 'blur(20px)',
+  border: '1px solid rgba(48, 54, 61, 0.5)',
+  borderRadius: '20px',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  cursor: 'pointer',
+  height: '100%',
+  '&:hover': {
+    transform: 'translateY(-8px)',
+    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
+    borderColor: 'rgba(108, 92, 231, 0.3)',
+  },
 }));
 
 const SearchView = () => {
@@ -133,86 +199,123 @@ const SearchView = () => {
   };
 
   const renderPosts = () => (
-    <Box>
-      {results.posts.map((post) => (
-        <PostCard key={post._id} post={post} />
+    <Stack spacing={3}>
+      {results.posts.map((post, index) => (
+        <Fade in timeout={300 + index * 100} key={post._id}>
+          <Box>
+            <PostCard post={post} />
+          </Box>
+        </Fade>
       ))}
-    </Box>
+    </Stack>
   );
 
   const renderUsers = () => (
-    <Grid container spacing={2}>
-      {results.users.map((user) => (
+    <Grid container spacing={3}>
+      {results.users.map((user, index) => (
         <Grid item xs={12} sm={6} md={4} key={user._id}>
-          <Card sx={{ 
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            cursor: 'pointer',
-            '&:hover': {
-              transform: 'translateY(-2px)',
-              boxShadow: '0 8px 25px rgba(0, 0, 0, 0.2)',
-            },
-            transition: 'all 0.3s ease'
-          }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Avatar
-                  src={user.avatar}
-                  sx={{ width: 50, height: 50 }}
-                >
-                  <PersonIcon />
-                </Avatar>
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    {user.username}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {user.fullName || `${user.followerCount} followers`}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {user.postCount} posts
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
+          <Fade in timeout={300 + index * 100}>
+            <ResultCard 
+              onClick={() => navigate(`/profile/${user.username}`)}
+            >
+              <CardContent>
+                <Stack alignItems="center" spacing={2}>
+                  <Avatar
+                    src={user.avatar}
+                    sx={{ 
+                      width: 80, 
+                      height: 80,
+                      border: '3px solid rgba(108, 92, 231, 0.3)',
+                    }}
+                  >
+                    <PersonIcon fontSize="large" />
+                  </Avatar>
+                  <Box textAlign="center">
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        fontWeight: 600,
+                        color: 'text.primary',
+                        mb: 0.5,
+                      }}
+                    >
+                      {user.username}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                      {user.fullName || 'No name provided'}
+                    </Typography>
+                    <Stack direction="row" spacing={2} justifyContent="center">
+                      <Chip 
+                        label={`${user.followerCount || 0} followers`} 
+                        size="small"
+                        sx={{ 
+                          background: 'rgba(108, 92, 231, 0.1)',
+                          color: 'primary.main',
+                        }}
+                      />
+                      <Chip 
+                        label={`${user.postCount || 0} posts`} 
+                        size="small"
+                        sx={{ 
+                          background: 'rgba(253, 121, 168, 0.1)',
+                          color: 'secondary.main',
+                        }}
+                      />
+                    </Stack>
+                  </Box>
+                </Stack>
+              </CardContent>
+            </ResultCard>
+          </Fade>
         </Grid>
       ))}
     </Grid>
   );
 
   const renderTags = () => (
-    <Grid container spacing={2}>
-      {results.tags.map((tag) => (
+    <Grid container spacing={3}>
+      {results.tags.map((tag, index) => (
         <Grid item xs={12} sm={6} md={4} key={tag.name}>
-          <Card sx={{ 
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            cursor: 'pointer',
-            '&:hover': {
-              transform: 'translateY(-2px)',
-              boxShadow: '0 8px 25px rgba(0, 0, 0, 0.2)',
-            },
-            transition: 'all 0.3s ease'
-          }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Avatar sx={{ bgcolor: 'secondary.main' }}>
-                  <TagIcon />
-                </Avatar>
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    #{tag.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {tag.count} posts
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
+          <Fade in timeout={300 + index * 100}>
+            <ResultCard 
+              onClick={() => navigate(`/search?q=${encodeURIComponent(tag.name)}&type=posts`)}
+            >
+              <CardContent>
+                <Stack alignItems="center" spacing={2}>
+                  <Avatar 
+                    sx={{ 
+                      bgcolor: 'secondary.main', 
+                      width: 80, 
+                      height: 80,
+                      background: 'linear-gradient(135deg, #fd79a8, #fdcb6e)',
+                    }}
+                  >
+                    <TagIcon fontSize="large" />
+                  </Avatar>
+                  <Box textAlign="center">
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        fontWeight: 600,
+                        color: 'text.primary',
+                        mb: 1,
+                      }}
+                    >
+                      #{tag.name}
+                    </Typography>
+                    <Chip 
+                      label={`${tag.count} posts`} 
+                      sx={{ 
+                        background: 'rgba(0, 212, 170, 0.1)',
+                        color: 'success.main',
+                        fontWeight: 600,
+                      }}
+                    />
+                  </Box>
+                </Stack>
+              </CardContent>
+            </ResultCard>
+          </Fade>
         </Grid>
       ))}
     </Grid>
@@ -220,111 +323,152 @@ const SearchView = () => {
 
   return (
     <SearchContainer>
+      <AnimatedBackground />
       <Container maxWidth="lg">
-        {/* Search Header */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h4" sx={{ mb: 2, color: 'white', fontWeight: 600 }}>
-            Search Results
-          </Typography>
-          
-          <form onSubmit={handleSearch}>
-            <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-              <TextField
-                fullWidth
-                placeholder="Search posts, users, tags..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                    borderRadius: 2,
-                  },
-                }}
-              />
-              <Button
-                type="submit"
-                variant="contained"
-                startIcon={<SearchIcon />}
-                sx={{ px: 4 }}
-              >
-                Search
-              </Button>
-            </Box>
-          </form>
-
-          {/* Filters */}
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
-            <Tabs value={activeTab} onChange={handleTabChange} sx={{ color: 'white' }}>
-              <Tab label="Posts" icon={<ArticleIcon />} iconPosition="start" />
-              <Tab label="Users" icon={<PersonIcon />} iconPosition="start" />
-              <Tab label="Tags" icon={<TagIcon />} iconPosition="start" />
-            </Tabs>
-
-            {type === 'posts' && (
-              <FormControl size="small" sx={{ minWidth: 120 }}>
-                <InputLabel>Sort by</InputLabel>
-                <Select
-                  value={sortBy}
-                  onChange={handleSortChange}
-                  label="Sort by"
-                  sx={{ backgroundColor: 'rgba(255, 255, 255, 0.9)' }}
+        <Slide direction="down" in timeout={600}>
+          <SearchHeader>
+            <Typography 
+              variant="h3" 
+              sx={{ 
+                mb: 3, 
+                color: 'text.primary', 
+                fontWeight: 700,
+                background: 'linear-gradient(135deg, #6c5ce7, #fd79a8)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
+              Discover & Search
+            </Typography>
+            
+            <form onSubmit={handleSearch}>
+              <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
+                <TextField
+                  fullWidth
+                  placeholder="Search posts, users, tags..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '16px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                      },
+                      '&.Mui-focused': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      },
+                    },
+                  }}
+                />
+                <Button
+                  type="submit"
+                  variant="contained"
+                  startIcon={<SearchIcon />}
+                  sx={{ 
+                    px: 4,
+                    borderRadius: '16px',
+                    background: 'linear-gradient(135deg, #6c5ce7, #a29bfe)',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #5f3dc4, #6c5ce7)',
+                    },
+                  }}
                 >
-                  <MenuItem value="relevance">Relevance</MenuItem>
-                  <MenuItem value="likes">Most Liked</MenuItem>
-                  <MenuItem value="comments">Most Commented</MenuItem>
-                  <MenuItem value="date">Newest</MenuItem>
-                </Select>
-              </FormControl>
-            )}
-          </Box>
-        </Box>
+                  Search
+                </Button>
+              </Stack>
+            </form>
 
-        {/* Results */}
+            <Stack direction="row" alignItems="center" spacing={3}>
+              <StyledTabs value={activeTab} onChange={handleTabChange}>
+                <Tab label="Posts" icon={<ArticleIcon />} iconPosition="start" />
+                <Tab label="Users" icon={<PersonIcon />} iconPosition="start" />
+                <Tab label="Tags" icon={<TagIcon />} iconPosition="start" />
+              </StyledTabs>
+
+              {type === 'posts' && (
+                <FormControl size="small" sx={{ minWidth: 140 }}>
+                  <InputLabel sx={{ color: 'text.secondary' }}>Sort by</InputLabel>
+                  <Select
+                    value={sortBy}
+                    onChange={handleSortChange}
+                    label="Sort by"
+                    sx={{ 
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    }}
+                  >
+                    <MenuItem value="relevance">Relevance</MenuItem>
+                    <MenuItem value="likes">Most Liked</MenuItem>
+                    <MenuItem value="comments">Most Commented</MenuItem>
+                    <MenuItem value="date">Newest</MenuItem>
+                  </Select>
+                </FormControl>
+              )}
+            </Stack>
+          </SearchHeader>
+        </Slide>
+
         {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress />
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+            <CircularProgress size={60} sx={{ color: 'primary.main' }} />
           </Box>
         ) : (
           <Box>
             {pagination.total > 0 ? (
-              <>
-                <Typography variant="body2" color="white" sx={{ mb: 2 }}>
-                  Found {pagination.total} results
-                </Typography>
+              <Fade in timeout={800}>
+                <Box>
+                  <Typography 
+                    variant="h6" 
+                    color="text.secondary" 
+                    sx={{ mb: 4, fontWeight: 500 }}
+                  >
+                    Found {pagination.total} results
+                  </Typography>
 
-                {type === 'posts' && renderPosts()}
-                {type === 'users' && renderUsers()}
-                {type === 'tags' && renderTags()}
+                  {type === 'posts' && renderPosts()}
+                  {type === 'users' && renderUsers()}
+                  {type === 'tags' && renderTags()}
 
-                {/* Pagination */}
-                {pagination.totalPages > 1 && (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-                    <Pagination
-                      count={pagination.totalPages}
-                      page={page}
-                      onChange={handlePageChange}
-                      color="primary"
-                      sx={{
-                        '& .MuiPaginationItem-root': {
-                          color: 'white',
-                          '&.Mui-selected': {
-                            backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  {pagination.totalPages > 1 && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
+                      <Pagination
+                        count={pagination.totalPages}
+                        page={page}
+                        onChange={handlePageChange}
+                        color="primary"
+                        size="large"
+                        sx={{
+                          '& .MuiPaginationItem-root': {
+                            color: 'text.primary',
+                            borderRadius: '12px',
+                            '&.Mui-selected': {
+                              background: 'linear-gradient(135deg, #6c5ce7, #a29bfe)',
+                              color: 'white',
+                            },
+                            '&:hover': {
+                              backgroundColor: 'rgba(108, 92, 231, 0.1)',
+                            },
                           },
-                        },
-                      }}
-                    />
-                  </Box>
-                )}
-              </>
+                        }}
+                      />
+                    </Box>
+                  )}
+                </Box>
+              </Fade>
             ) : (
-              <Box sx={{ textAlign: 'center', py: 8 }}>
-                <Typography variant="h6" color="white" sx={{ mb: 2 }}>
-                  No results found
-                </Typography>
-                <Typography variant="body2" color="rgba(255, 255, 255, 0.7)">
-                  Try adjusting your search terms or browse different categories
-                </Typography>
-              </Box>
+              <Fade in timeout={800}>
+                <Box sx={{ textAlign: 'center', py: 12 }}>
+                  <SearchIcon sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
+                  <Typography variant="h4" color="text.primary" sx={{ mb: 2, fontWeight: 600 }}>
+                    No results found
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 400, mx: 'auto' }}>
+                    Try adjusting your search terms or browse different categories to discover amazing content
+                  </Typography>
+                </Box>
+              </Fade>
             )}
           </Box>
         )}
@@ -333,4 +477,4 @@ const SearchView = () => {
   );
 };
 
-export default SearchView; 
+export default SearchView;

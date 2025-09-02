@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -13,31 +14,108 @@ import {
   Fade,
   Alert,
   Divider,
+  Stack,
+  Paper,
+  Grid,
 } from '@mui/material';
 import {
   ArrowBack as BackIcon,
   CameraAlt as CameraIcon,
+  Save as SaveIcon,
+  Person as PersonIcon,
+  Link as LinkIcon,
+  LocationOn as LocationIcon,
+  Info as InfoIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
+import AnimatedBackground from '../common/AnimatedBackground';
 
-const EditContainer = styled(Box)(({ theme }) => ({
-  maxWidth: 600,
-  margin: '0 auto',
-  padding: '24px 16px',
+const EditContainer = styled(Container)(({ theme }) => ({
+  paddingTop: theme.spacing(10),
+  paddingBottom: theme.spacing(4),
+  minHeight: '100vh',
+  position: 'relative',
 }));
-const ProfileSection = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: 24,
-  marginBottom: 32,
+
+const ProfileCard = styled(Card)(({ theme }) => ({
+  background: 'rgba(22, 27, 34, 0.8)',
+  backdropFilter: 'blur(20px)',
+  border: '1px solid rgba(48, 54, 61, 0.5)',
+  borderRadius: '24px',
+  overflow: 'visible',
+  position: 'relative',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '4px',
+    background: 'linear-gradient(90deg, #6c5ce7, #fd79a8, #00d4aa)',
+    borderRadius: '24px 24px 0 0',
+  },
 }));
+
 const AvatarSection = styled(Box)(({ theme }) => ({
   position: 'relative',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  gap: 12,
+  gap: theme.spacing(2),
+  padding: theme.spacing(3),
+  background: 'rgba(108, 92, 231, 0.05)',
+  borderRadius: '20px',
+  border: '1px solid rgba(108, 92, 231, 0.2)',
+}));
+
+const StyledAvatar = styled(Avatar)(({ theme }) => ({
+  width: 120,
+  height: 120,
+  border: '4px solid rgba(108, 92, 231, 0.3)',
+  background: 'linear-gradient(135deg, #6c5ce7 0%, #764ba2 100%)',
+  color: 'white',
+  fontWeight: 700,
+  fontSize: '3rem',
+  position: 'relative',
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    transform: 'scale(1.05)',
+    borderColor: 'rgba(108, 92, 231, 0.6)',
+  },
+}));
+
+const UploadButton = styled(Button)(({ theme }) => ({
+  borderRadius: '12px',
+  padding: theme.spacing(1, 2),
+  background: 'rgba(108, 92, 231, 0.1)',
+  border: '1px solid rgba(108, 92, 231, 0.3)',
+  color: theme.palette.primary.main,
+  '&:hover': {
+    background: 'rgba(108, 92, 231, 0.2)',
+    transform: 'translateY(-2px)',
+  },
+}));
+
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '16px',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+      '& .MuiOutlinedInput-notchedOutline': {
+        borderColor: theme.palette.primary.main,
+      },
+    },
+    '&.Mui-focused': {
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+      '& .MuiOutlinedInput-notchedOutline': {
+        borderColor: theme.palette.primary.main,
+        borderWidth: '2px',
+      },
+    },
+  },
 }));
 
 const EditProfileView = () => {
@@ -111,6 +189,7 @@ const EditProfileView = () => {
         }));
       };
       reader.readAsDataURL(file);
+      
       // Upload to backend
       try {
         const token = localStorage.getItem('token');
@@ -181,157 +260,234 @@ const EditProfileView = () => {
 
   if (loading) {
     return (
-      <EditContainer>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <Skeleton variant="circular" width={24} height={24} />
-          <Skeleton variant="text" width={200} sx={{ ml: 2 }} />
+      <EditContainer maxWidth="md">
+        <AnimatedBackground />
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+          <Skeleton variant="circular" width={32} height={32} />
+          <Skeleton variant="text" width={250} height={40} sx={{ ml: 2 }} />
         </Box>
-        <Card>
-          <CardContent>
-            <ProfileSection>
-              <Skeleton variant="circular" width={80} height={80} />
-              <Box sx={{ flex: 1 }}>
-                <Skeleton variant="text" width="60%" height={32} />
-                <Skeleton variant="text" width="40%" />
-              </Box>
-            </ProfileSection>
-            <Skeleton variant="rectangular" height={56} sx={{ mb: 2 }} />
-            <Skeleton variant="rectangular" height={56} sx={{ mb: 2 }} />
-            <Skeleton variant="rectangular" height={56} sx={{ mb: 2 }} />
-            <Skeleton variant="rectangular" height={56} sx={{ mb: 3 }} />
-            <Skeleton variant="rectangular" height={48} />
+        <ProfileCard>
+          <CardContent sx={{ p: 4 }}>
+            <Grid container spacing={4}>
+              <Grid item xs={12} md={4}>
+                <Box sx={{ textAlign: 'center' }}>
+                  <Skeleton variant="circular" width={120} height={120} sx={{ mx: 'auto', mb: 2 }} />
+                  <Skeleton variant="rectangular" width={120} height={36} sx={{ mx: 'auto' }} />
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={8}>
+                <Stack spacing={3}>
+                  <Skeleton variant="rectangular" height={56} />
+                  <Skeleton variant="rectangular" height={96} />
+                  <Skeleton variant="rectangular" height={56} />
+                  <Skeleton variant="rectangular" height={56} />
+                  <Skeleton variant="rectangular" height={48} />
+                </Stack>
+              </Grid>
+            </Grid>
           </CardContent>
-        </Card>
+        </ProfileCard>
       </EditContainer>
     );
   }
 
   return (
-    <EditContainer>
-      <Fade in={true} timeout={300}>
+    <EditContainer maxWidth="md">
+      <AnimatedBackground />
+      <Fade in timeout={600}>
         <Box>
           {/* Header */}
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-            <IconButton onClick={handleBack} sx={{ mr: 2 }}>
-              <BackIcon />
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+            <IconButton 
+              onClick={handleBack} 
+              sx={{ 
+                mr: 2,
+                backgroundColor: 'rgba(108, 92, 231, 0.1)',
+                '&:hover': {
+                  backgroundColor: 'rgba(108, 92, 231, 0.2)',
+                  transform: 'scale(1.1)',
+                },
+              }}
+            >
+              <BackIcon sx={{ color: 'primary.main' }} />
             </IconButton>
-            <Typography variant="h5" sx={{ fontWeight: 600 }}>
+            <Typography 
+              variant="h4" 
+              sx={{ 
+                fontWeight: 700,
+                background: 'linear-gradient(135deg, #6c5ce7, #fd79a8)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
               Edit Profile
             </Typography>
           </Box>
+
           {/* Alerts */}
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
+            <Fade in>
+              <Alert 
+                severity="error" 
+                sx={{ 
+                  mb: 3,
+                  borderRadius: '16px',
+                  backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                  border: '1px solid rgba(255, 107, 107, 0.3)',
+                }}
+              >
+                {error}
+              </Alert>
+            </Fade>
           )}
           {success && (
-            <Alert severity="success" sx={{ mb: 2 }}>
-              {success}
-            </Alert>
+            <Fade in>
+              <Alert 
+                severity="success" 
+                sx={{ 
+                  mb: 3,
+                  borderRadius: '16px',
+                  backgroundColor: 'rgba(0, 212, 170, 0.1)',
+                  border: '1px solid rgba(0, 212, 170, 0.3)',
+                }}
+              >
+                {success}
+              </Alert>
+            </Fade>
           )}
-          <Card>
-            <CardContent>
+
+          <ProfileCard>
+            <CardContent sx={{ p: 4 }}>
               <form onSubmit={handleSubmit}>
-                {/* Avatar Section */}
-                <ProfileSection>
-                  <AvatarSection>
-                    <Avatar
-                      src={formData.avatar}
-                      sx={{
-                        width: 100,
-                        height: 100,
-                        border: '3px solid rgba(255, 255, 255, 0.2)',
-                        background: formData.avatar ? 'transparent' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        color: 'white',
-                        fontWeight: 600,
-                        fontSize: '2.5rem',
-                      }}
-                    >
-                      {!formData.avatar && formData.fullName?.charAt(0)?.toUpperCase()}
-                    </Avatar>
-                    <input
-                      accept="image/*"
-                      style={{ display: 'none' }}
-                      id="avatar-upload"
-                      type="file"
-                      onChange={handleAvatarChange}
-                    />
-                    <label htmlFor="avatar-upload">
+                <Grid container spacing={4}>
+                  {/* Avatar Section */}
+                  <Grid item xs={12} md={4}>
+                    <AvatarSection>
+                      <StyledAvatar src={formData.avatar}>
+                        {!formData.avatar && formData.fullName?.charAt(0)?.toUpperCase()}
+                      </StyledAvatar>
+                      
+                      <Stack spacing={2} alignItems="center">
+                        <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                          Profile Photo
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" textAlign="center">
+                          Upload a new profile picture to personalize your account
+                        </Typography>
+                        
+                        <input
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                          id="avatar-upload"
+                          type="file"
+                          onChange={handleAvatarChange}
+                        />
+                        <label htmlFor="avatar-upload">
+                          <UploadButton
+                            component="span"
+                            startIcon={<CameraIcon />}
+                          >
+                            Change Photo
+                          </UploadButton>
+                        </label>
+                      </Stack>
+                    </AvatarSection>
+                  </Grid>
+
+                  {/* Form Fields */}
+                  <Grid item xs={12} md={8}>
+                    <Stack spacing={3}>
+                      <Box>
+                        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: 'text.primary' }}>
+                          Personal Information
+                        </Typography>
+                        <StyledTextField
+                          fullWidth
+                          label="Full Name"
+                          value={formData.fullName}
+                          onChange={handleInputChange('fullName')}
+                          placeholder="Enter your full name"
+                          InputProps={{
+                            startAdornment: <PersonIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+                          }}
+                        />
+                      </Box>
+
+                      <StyledTextField
+                        fullWidth
+                        label="Bio"
+                        value={formData.biography}
+                        onChange={handleInputChange('biography')}
+                        multiline
+                        rows={4}
+                        placeholder="Tell us about yourself..."
+                        helperText="Maximum 150 characters"
+                        inputProps={{ maxLength: 150 }}
+                        InputProps={{
+                          startAdornment: (
+                            <InfoIcon sx={{ mr: 1, color: 'text.secondary', alignSelf: 'flex-start', mt: 2 }} />
+                          ),
+                        }}
+                      />
+
+                      <StyledTextField
+                        fullWidth
+                        label="Website"
+                        value={formData.website}
+                        onChange={handleInputChange('website')}
+                        placeholder="https://yourwebsite.com"
+                        InputProps={{
+                          startAdornment: <LinkIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+                        }}
+                      />
+
+                      <StyledTextField
+                        fullWidth
+                        label="Location"
+                        value={formData.location}
+                        onChange={handleInputChange('location')}
+                        placeholder="Where are you based?"
+                        InputProps={{
+                          startAdornment: <LocationIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+                        }}
+                      />
+
                       <Button
-                        component="span"
-                        variant="outlined"
-                        size="small"
-                        startIcon={<CameraIcon />}
+                        type="submit"
+                        variant="contained"
+                        size="large"
+                        disabled={saving}
+                        startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
+                        sx={{
+                          mt: 4,
+                          borderRadius: '16px',
+                          padding: '12px 32px',
+                          background: 'linear-gradient(135deg, #6c5ce7, #a29bfe)',
+                          fontSize: '1.1rem',
+                          fontWeight: 600,
+                          '&:hover': {
+                            background: 'linear-gradient(135deg, #5f3dc4, #6c5ce7)',
+                            transform: 'translateY(-2px)',
+                            boxShadow: '0 8px 25px rgba(108, 92, 231, 0.3)',
+                          },
+                          '&:disabled': {
+                            background: 'rgba(108, 92, 231, 0.3)',
+                          },
+                        }}
                       >
-                        Change Photo
+                        {saving ? 'Saving Changes...' : 'Save Changes'}
                       </Button>
-                    </label>
-                  </AvatarSection>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="h6" sx={{ mb: 1 }}>
-                      Profile Photo
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Upload a new profile picture
-                    </Typography>
-                  </Box>
-                </ProfileSection>
-                <Divider sx={{ mb: 3 }} />
-                {/* Form Fields */}
-                <TextField
-                  fullWidth
-                  label="Full Name"
-                  value={formData.fullName}
-                  onChange={handleInputChange('fullName')}
-                  sx={{ mb: 2 }}
-                  placeholder="Enter your full name"
-                />
-                <TextField
-                  fullWidth
-                  label="Bio"
-                  value={formData.biography}
-                  onChange={handleInputChange('biography')}
-                  multiline
-                  rows={3}
-                  sx={{ mb: 2 }}
-                  placeholder="Tell us about yourself..."
-                  helperText="Maximum 150 characters"
-                  inputProps={{ maxLength: 150 }}
-                />
-                <TextField
-                  fullWidth
-                  label="Website"
-                  value={formData.website}
-                  onChange={handleInputChange('website')}
-                  sx={{ mb: 2 }}
-                  placeholder="https://yourwebsite.com"
-                />
-                <TextField
-                  fullWidth
-                  label="Location"
-                  value={formData.location}
-                  onChange={handleInputChange('location')}
-                  sx={{ mb: 3 }}
-                  placeholder="Where are you based?"
-                />
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  disabled={saving}
-                  startIcon={<CameraIcon />}
-                  sx={{ mt: 2 }}
-                >
-                  {saving ? 'Saving...' : 'Save Changes'}
-                </Button>
+                    </Stack>
+                  </Grid>
+                </Grid>
               </form>
             </CardContent>
-          </Card>
+          </ProfileCard>
         </Box>
       </Fade>
     </EditContainer>
   );
 };
 
-export default EditProfileView; 
+export default EditProfileView;
