@@ -19,20 +19,24 @@ const createNotification = async (recipientId, senderId, type, postId = null, co
     });
 
     // Emit real-time notification
-    const { emitNotification, emitUnreadCount } = require("../socketServer");
     const populatedNotification = await Notification.findById(notification._id)
       .populate("sender", "username avatar")
       .populate("post", "title")
       .populate("comment", "content");
     
-    emitNotification(recipientId, populatedNotification);
+    if (global.emitNotification) {
+      global.emitNotification(recipientId, populatedNotification);
+    }
     
     // Update unread count
     const unreadCount = await Notification.countDocuments({
       recipient: recipientId,
       read: false,
     });
-    emitUnreadCount(recipientId, unreadCount);
+    
+    if (global.emitUnreadCount) {
+      global.emitUnreadCount(recipientId, unreadCount);
+    }
 
     return notification;
   } catch (error) {
