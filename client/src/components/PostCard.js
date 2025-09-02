@@ -1,31 +1,36 @@
 
-import React, { useState } from "react";
-import { 
-  Card, 
-  Box, 
-  Stack, 
-  Typography, 
-  IconButton, 
-  Button,
+import React, { useState } from 'react';
+import {
+  Card,
+  CardContent,
+  CardActions,
   Avatar,
+  Typography,
+  IconButton,
+  Box,
   Chip,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  useMediaQuery,
+  useTheme,
   Fade,
   Collapse,
-  Divider,
-} from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { 
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Favorite as FavoriteIcon,
-  FavoriteBorder as FavoriteBorderIcon,
+  TextField,
+  Button,
+  Stack,
+} from '@mui/material';
+import {
+  Favorite as LikeIcon,
+  FavoriteBorder as LikeOutlineIcon,
   Comment as CommentIcon,
   Share as ShareIcon,
-  Bookmark as BookmarkIcon,
-  BookmarkBorder as BookmarkBorderIcon,
+  MoreVert as MoreIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Send as SendIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
-import ContentUpdateEditor from "./ContentUpdateEditor";
-import { isLoggedIn } from "../helpers/authHelper";
 import { styled } from '@mui/material/styles';
 
 const StyledCard = styled(Card)(({ theme }) => ({
@@ -33,173 +38,143 @@ const StyledCard = styled(Card)(({ theme }) => ({
   backdropFilter: 'blur(20px)',
   border: '1px solid rgba(48, 54, 61, 0.5)',
   borderRadius: '20px',
-  marginBottom: theme.spacing(3),
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  marginBottom: theme.spacing(3),
   overflow: 'visible',
   position: 'relative',
+  [theme.breakpoints.down('sm')]: {
+    borderRadius: '16px',
+    marginBottom: theme.spacing(2),
+  },
   '&:hover': {
-    transform: 'translateY(-8px)',
-    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
+    transform: 'translateY(-4px)',
+    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
     borderColor: 'rgba(108, 92, 231, 0.3)',
-  },
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '4px',
-    background: 'linear-gradient(90deg, #6c5ce7, #fd79a8, #00d4aa)',
-    borderRadius: '20px 20px 0 0',
-    opacity: 0,
-    transition: 'opacity 0.3s ease',
-  },
-  '&:hover::before': {
-    opacity: 1,
+    [theme.breakpoints.down('sm')]: {
+      transform: 'translateY(-2px)',
+    },
   },
 }));
 
 const PostHeader = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  gap: theme.spacing(2),
-  padding: theme.spacing(2, 2.5, 1, 2.5),
-}));
-
-const PostContent = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(0, 2.5, 2, 2.5),
-}));
-
-const PostImage = styled('img')(({ theme }) => ({
-  width: '100%',
-  maxHeight: '400px',
-  objectFit: 'cover',
-  borderRadius: '16px',
-  marginBottom: theme.spacing(2),
-  transition: 'transform 0.3s ease',
-  '&:hover': {
-    transform: 'scale(1.02)',
+  padding: theme.spacing(2, 2, 1, 2),
+  [theme.breakpoints.down('sm')]: {
+    padding: theme.spacing(1.5, 1.5, 1, 1.5),
   },
 }));
 
-const ActionButton = styled(IconButton)(({ theme }) => ({
+const PostContent = styled(CardContent)(({ theme }) => ({
+  paddingTop: 0,
+  paddingBottom: theme.spacing(1),
+  [theme.breakpoints.down('sm')]: {
+    padding: theme.spacing(0, 1.5, 1, 1.5),
+  },
+}));
+
+const PostActions = styled(CardActions)(({ theme }) => ({
+  padding: theme.spacing(1, 2, 2, 2),
+  justifyContent: 'space-between',
+  [theme.breakpoints.down('sm')]: {
+    padding: theme.spacing(1, 1.5, 1.5, 1.5),
+  },
+}));
+
+const ActionButton = styled(IconButton)(({ theme, active }) => ({
   borderRadius: '12px',
   padding: theme.spacing(1),
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  transition: 'all 0.3s ease',
+  color: active ? theme.palette.primary.main : theme.palette.text.secondary,
+  backgroundColor: active ? 'rgba(108, 92, 231, 0.1)' : 'transparent',
+  [theme.breakpoints.down('sm')]: {
+    padding: theme.spacing(0.5),
+  },
   '&:hover': {
-    transform: 'scale(1.1)',
-    backgroundColor: 'rgba(108, 92, 231, 0.1)',
+    backgroundColor: active 
+      ? 'rgba(108, 92, 231, 0.15)' 
+      : 'rgba(108, 92, 231, 0.08)',
+    transform: 'scale(1.05)',
   },
 }));
 
-const StyledButton = styled(Button)(({ theme }) => ({
-  borderRadius: '12px',
-  padding: theme.spacing(1, 2),
-  textTransform: 'none',
-  fontWeight: 600,
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+const TagChip = styled(Chip)(({ theme }) => ({
+  margin: theme.spacing(0.5, 0.5, 0.5, 0),
+  borderRadius: '16px',
+  fontSize: '0.75rem',
+  height: '24px',
+  background: 'rgba(108, 92, 231, 0.1)',
+  color: theme.palette.primary.main,
+  border: '1px solid rgba(108, 92, 231, 0.3)',
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '0.7rem',
+    height: '20px',
+  },
   '&:hover': {
-    transform: 'translateY(-2px)',
+    background: 'rgba(108, 92, 231, 0.15)',
+    transform: 'scale(1.05)',
   },
 }));
 
-const PostCard = (props) => {
-  const { post: postData, removePost } = props;
-  const [post, setPost] = useState(postData);
-  const [editing, setEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [confirm, setConfirm] = useState(false);
-  const [liked, setLiked] = useState(post.isLiked || false);
-  const [saved, setSaved] = useState(post.isSaved || false);
-  const [likeCount, setLikeCount] = useState(post.likeCount || 0);
-  const user = isLoggedIn();
-  const isAuthor = user && user.username === post.poster.username;
-  const navigate = useNavigate();
+const CommentSection = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(0, 2, 2, 2),
+  [theme.breakpoints.down('sm')]: {
+    padding: theme.spacing(0, 1.5, 1.5, 1.5),
+  },
+}));
 
-  const handleDeletePost = async (e) => {
-    e.stopPropagation();
-    if (!confirm) {
-      setConfirm(true);
+const PostCard = ({ 
+  post, 
+  onLike, 
+  onComment, 
+  onShare, 
+  onEdit, 
+  onDelete, 
+  currentUser 
+}) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [menuAnchor, setMenuAnchor] = useState(null);
+  const [showComments, setShowComments] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [isLiked, setIsLiked] = useState(post.liked || false);
+  const [likesCount, setLikesCount] = useState(post.likesCount || 0);
+
+  const handleMenuOpen = (event) => {
+    setMenuAnchor(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchor(null);
+  };
+
+  const handleLike = async () => {
+    try {
+      setIsLiked(!isLiked);
+      setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
+      if (onLike) await onLike(post._id);
+    } catch (error) {
+      setIsLiked(isLiked);
+      setLikesCount(prev => isLiked ? prev + 1 : prev - 1);
+    }
+  };
+
+  const handleComment = async () => {
+    if (commentText.trim() && onComment) {
+      await onComment(post._id, commentText);
+      setCommentText('');
+    }
+  };
+
+  const formatDate = (date) => {
+    const now = new Date();
+    const postDate = new Date(date);
+    const diffInHours = Math.floor((now - postDate) / (1000 * 60 * 60));
+    
+    if (diffInHours < 24) {
+      return `${diffInHours}h`;
     } else {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-      await fetch(`/api/posts/${post._id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      setLoading(false);
-      if (removePost) removePost(post);
-      else navigate("/");
-    }
-  };
-
-  const handleEditPost = (e) => {
-    e.stopPropagation();
-    setEditing(!editing);
-  };
-
-  const handleLike = async (e) => {
-    e.stopPropagation();
-    if (!user) return;
-    
-    setLiked(!liked);
-    setLikeCount(prev => liked ? prev - 1 : prev + 1);
-    
-    try {
-      const token = localStorage.getItem('token');
-      await fetch(`/api/posts/${post._id}/like`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-    } catch (error) {
-      setLiked(liked);
-      setLikeCount(prev => liked ? prev + 1 : prev - 1);
-    }
-  };
-
-  const handleSave = async (e) => {
-    e.stopPropagation();
-    if (!user) return;
-    
-    setSaved(!saved);
-    
-    try {
-      const token = localStorage.getItem('token');
-      await fetch(`/api/posts/${post._id}/save`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-    } catch (error) {
-      setSaved(saved);
-    }
-  };
-
-  const handleSubmit = async (e, selectedImage) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const token = localStorage.getItem('token');
-      const userData = JSON.parse(localStorage.getItem('user'));
-      const formData = new FormData();
-      formData.append('content', e.target.content.value);
-      formData.append('userId', userData._id);
-      if (selectedImage) {
-        formData.append('image', selectedImage);
-      }
-      const response = await fetch(`/api/posts/${post._id}`, {
-        method: 'PATCH',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData
-      });
-      if (response.ok) {
-        const updatedPost = await response.json();
-        setPost({ ...post, ...updatedPost });
-        setEditing(false);
-      } else {
-        setEditing(false);
-      }
-    } finally {
-      setLoading(false);
+      return postDate.toLocaleDateString();
     }
   };
 
@@ -207,177 +182,242 @@ const PostCard = (props) => {
     <Fade in timeout={600}>
       <StyledCard>
         <PostHeader>
-          <Avatar 
-            src={post.poster.avatar} 
-            sx={{ 
-              width: 48, 
-              height: 48,
-              border: '2px solid rgba(108, 92, 231, 0.3)',
+          <Avatar
+            src={post.author?.avatar}
+            sx={{
+              width: isMobile ? 36 : 44,
+              height: isMobile ? 36 : 44,
+              mr: 1.5,
+              border: '2px solid',
+              borderColor: 'primary.main',
             }}
           >
-            {post.poster.username.charAt(0).toUpperCase()}
+            {post.author?.displayName?.[0]}
           </Avatar>
-          <Box sx={{ flex: 1 }}>
+          
+          <Box sx={{ flexGrow: 1 }}>
             <Typography 
-              variant="h6" 
-              sx={{ 
-                fontWeight: 600, 
-                color: 'text.primary',
-                cursor: 'pointer',
-                '&:hover': { color: 'primary.main' }
-              }}
-              onClick={() => navigate(`/profile/${post.poster.username}`)}
+              variant={isMobile ? "subtitle2" : "subtitle1"} 
+              fontWeight={600}
+              color="text.primary"
             >
-              {post.poster.username}
+              {post.author?.displayName || 'Unknown User'}
             </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {new Date(post.createdAt).toLocaleDateString()}
-            </Typography>
-          </Box>
-          {isAuthor && (
-            <Stack direction="row" spacing={1}>
-              <ActionButton onClick={handleEditPost} disabled={loading}>
-                <EditIcon fontSize="small" />
-              </ActionButton>
-              <ActionButton 
-                onClick={handleDeletePost} 
-                disabled={loading}
-                sx={{ 
-                  color: confirm ? 'error.main' : 'text.secondary',
-                  '&:hover': { 
-                    backgroundColor: confirm ? 'rgba(255, 107, 107, 0.1)' : 'rgba(108, 92, 231, 0.1)'
-                  }
-                }}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography 
+                variant="caption" 
+                color="text.secondary"
               >
-                <DeleteIcon fontSize="small" />
-              </ActionButton>
-            </Stack>
-          )}
+                @{post.author?.username}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                •
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {formatDate(post.createdAt)}
+              </Typography>
+            </Box>
+          </Box>
+
+          <IconButton
+            size={isMobile ? "small" : "medium"}
+            onClick={handleMenuOpen}
+            sx={{ ml: 1 }}
+          >
+            <MoreIcon />
+          </IconButton>
         </PostHeader>
 
-        <Collapse in={!editing}>
-          <PostContent>
-            {post.image && (
-              <PostImage src={post.image} alt="Post" />
-            )}
-            
-            <Typography 
-              variant="h5" 
-              sx={{ 
-                mb: 2, 
-                fontWeight: 600, 
-                color: 'text.primary',
-                lineHeight: 1.3,
+        <PostContent>
+          <Typography 
+            variant={isMobile ? "body2" : "body1"} 
+            color="text.primary"
+            sx={{ 
+              mb: 2, 
+              lineHeight: 1.6,
+              wordBreak: 'break-word',
+            }}
+          >
+            {post.content}
+          </Typography>
+
+          {post.image && (
+            <Box
+              component="img"
+              src={post.image}
+              alt="Post content"
+              sx={{
+                width: '100%',
+                height: 'auto',
+                maxHeight: isMobile ? 300 : 400,
+                objectFit: 'cover',
+                borderRadius: '12px',
+                mb: 2,
               }}
-            >
-              {post.title}
-            </Typography>
-            
-            <Typography 
-              variant="body1" 
-              sx={{ 
-                mb: 3, 
-                color: 'text.primary',
-                lineHeight: 1.6,
-              }}
-            >
-              {post.content}
-            </Typography>
-
-            {post.tags && post.tags.length > 0 && (
-              <Stack direction="row" spacing={1} sx={{ mb: 3, flexWrap: 'wrap', gap: 1 }}>
-                {post.tags.map((tag, index) => (
-                  <Chip
-                    key={index}
-                    label={`#${tag}`}
-                    size="small"
-                    sx={{
-                      background: 'rgba(108, 92, 231, 0.1)',
-                      color: 'primary.main',
-                      border: '1px solid rgba(108, 92, 231, 0.3)',
-                      '&:hover': {
-                        background: 'rgba(108, 92, 231, 0.2)',
-                        cursor: 'pointer',
-                      },
-                    }}
-                    onClick={() => navigate(`/search?q=${encodeURIComponent(tag)}&type=posts`)}
-                  />
-                ))}
-              </Stack>
-            )}
-
-            <Divider sx={{ mb: 2, borderColor: 'rgba(48, 54, 61, 0.5)' }} />
-
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Stack direction="row" spacing={2}>
-                <ActionButton onClick={handleLike} disabled={!user}>
-                  {liked ? (
-                    <FavoriteIcon sx={{ color: 'error.main' }} fontSize="small" />
-                  ) : (
-                    <FavoriteBorderIcon fontSize="small" />
-                  )}
-                  <Typography variant="caption" sx={{ ml: 0.5 }}>
-                    {likeCount}
-                  </Typography>
-                </ActionButton>
-
-                <ActionButton onClick={() => navigate(`/posts/${post._id}`)}>
-                  <CommentIcon fontSize="small" />
-                  <Typography variant="caption" sx={{ ml: 0.5 }}>
-                    {post.commentCount || 0}
-                  </Typography>
-                </ActionButton>
-
-                <ActionButton>
-                  <ShareIcon fontSize="small" />
-                </ActionButton>
-              </Stack>
-
-              <ActionButton onClick={handleSave} disabled={!user}>
-                {saved ? (
-                  <BookmarkIcon sx={{ color: 'warning.main' }} fontSize="small" />
-                ) : (
-                  <BookmarkBorderIcon fontSize="small" />
-                )}
-              </ActionButton>
-            </Stack>
-          </PostContent>
-        </Collapse>
-
-        <Collapse in={editing}>
-          <Box sx={{ p: 2.5 }}>
-            <ContentUpdateEditor
-              originalContent={post.content}
-              originalImage={post.image}
-              handleSubmit={handleSubmit}
             />
+          )}
+
+          {post.tags && post.tags.length > 0 && (
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', mt: 1 }}>
+              {post.tags.map((tag, index) => (
+                <TagChip 
+                  key={index} 
+                  label={`#${tag}`} 
+                  size={isMobile ? "small" : "medium"}
+                />
+              ))}
+            </Box>
+          )}
+        </PostContent>
+
+        <PostActions>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <ActionButton 
+              active={isLiked}
+              onClick={handleLike}
+              size={isMobile ? "small" : "medium"}
+            >
+              {isLiked ? <LikeIcon /> : <LikeOutlineIcon />}
+            </ActionButton>
+            <Typography 
+              variant="caption" 
+              color="text.secondary"
+              sx={{ minWidth: '20px' }}
+            >
+              {likesCount}
+            </Typography>
+
+            <ActionButton 
+              onClick={() => setShowComments(!showComments)}
+              size={isMobile ? "small" : "medium"}
+            >
+              <CommentIcon />
+            </ActionButton>
+            <Typography 
+              variant="caption" 
+              color="text.secondary"
+              sx={{ minWidth: '20px' }}
+            >
+              {post.comments?.length || 0}
+            </Typography>
           </Box>
+
+          <ActionButton 
+            onClick={() => onShare && onShare(post._id)}
+            size={isMobile ? "small" : "medium"}
+          >
+            <ShareIcon />
+          </ActionButton>
+        </PostActions>
+
+        <Collapse in={showComments}>
+          <CommentSection>
+            <Box sx={{ 
+              display: 'flex', 
+              gap: 1, 
+              mb: 2,
+              flexDirection: isMobile ? 'column' : 'row',
+            }}>
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="Write a comment..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                multiline={isMobile}
+                maxRows={isMobile ? 3 : 1}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '20px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                  },
+                }}
+              />
+              <Button
+                variant="contained"
+                size="small"
+                onClick={handleComment}
+                disabled={!commentText.trim()}
+                sx={{ 
+                  borderRadius: '20px',
+                  minWidth: isMobile ? 'auto' : '80px',
+                  alignSelf: isMobile ? 'flex-end' : 'center',
+                }}
+                endIcon={<SendIcon />}
+              >
+                {isMobile ? '' : 'Post'}
+              </Button>
+            </Box>
+
+            {post.comments?.map((comment, index) => (
+              <Box key={index} sx={{ mb: 1.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                  <Avatar 
+                    src={comment.author?.avatar} 
+                    sx={{ 
+                      width: isMobile ? 24 : 28, 
+                      height: isMobile ? 24 : 28, 
+                      mr: 1 
+                    }}
+                  >
+                    {comment.author?.displayName?.[0]}
+                  </Avatar>
+                  <Typography 
+                    variant="caption" 
+                    fontWeight={600}
+                    color="text.primary"
+                  >
+                    {comment.author?.displayName}
+                  </Typography>
+                  <Typography 
+                    variant="caption" 
+                    color="text.secondary" 
+                    sx={{ ml: 1 }}
+                  >
+                    {formatDate(comment.createdAt)}
+                  </Typography>
+                </Box>
+                <Typography 
+                  variant={isMobile ? "caption" : "body2"} 
+                  color="text.primary"
+                  sx={{ ml: isMobile ? 4 : 4.5 }}
+                >
+                  {comment.content}
+                </Typography>
+              </Box>
+            ))}
+          </CommentSection>
         </Collapse>
 
-        {confirm && (
-          <Box sx={{ p: 2, pt: 0 }}>
-            <Typography variant="body2" color="error.main" sx={{ mb: 2 }}>
-              Are you sure you want to delete this post?
-            </Typography>
-            <Stack direction="row" spacing={2}>
-              <StyledButton 
-                variant="outlined" 
-                color="error" 
-                onClick={handleDeletePost}
-                disabled={loading}
-              >
-                Confirm Delete
-              </StyledButton>
-              <StyledButton 
-                variant="outlined" 
-                onClick={() => setConfirm(false)}
-                disabled={loading}
-              >
-                Cancel
-              </StyledButton>
-            </Stack>
-          </Box>
-        )}
+        <Menu
+          anchorEl={menuAnchor}
+          open={Boolean(menuAnchor)}
+          onClose={handleMenuClose}
+          PaperProps={{
+            sx: { minWidth: 150 }
+          }}
+        >
+          {currentUser?._id === post.author?._id && [
+            <MenuItem key="edit" onClick={() => { onEdit && onEdit(post._id); handleMenuClose(); }}>
+              <ListItemIcon>
+                <EditIcon fontSize="small" />
+              </ListItemIcon>
+              Edit
+            </MenuItem>,
+            <MenuItem key="delete" onClick={() => { onDelete && onDelete(post._id); handleMenuClose(); }}>
+              <ListItemIcon>
+                <DeleteIcon fontSize="small" />
+              </ListItemIcon>
+              Delete
+            </MenuItem>
+          ]}
+          <MenuItem onClick={handleMenuClose}>
+            <ListItemIcon>
+              <ShareIcon fontSize="small" />
+            </ListItemIcon>
+            Share
+          </MenuItem>
+        </Menu>
       </StyledCard>
     </Fade>
   );
